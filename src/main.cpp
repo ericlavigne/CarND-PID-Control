@@ -35,14 +35,14 @@ int main()
 {
   uWS::Hub h;
 
-  double Kp = 0.1, Ki = 0.005, Kd = 2.0;
+  double Kp = 0.12, Ki = 0.005, Kd = 1.8;
 
   PID pid;
   pid.Init(Kp,Ki,Kd);
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
 
-    double min_speed = 50.0, max_speed = 70.0, safe_cte_limit = 2.0;
+    double min_speed = 40.0, max_speed = 60.0, safe_cte_limit = 1.0, danger_cte_limit = 4.0;
 
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -65,7 +65,11 @@ int main()
           double throttle = 1.0;
           if(speed > max_speed) {
             throttle = 0.0;
-          } else if(speed > min_speed && fabs(cte) > safe_cte_limit) {
+          } else if(speed < min_speed) {
+            throttle = 1.0;
+          } else if(fabs(cte) > danger_cte_limit) {
+            throttle = -1.0;
+          } else if(fabs(cte) > safe_cte_limit) {
             throttle = 0.0;
           }
           
